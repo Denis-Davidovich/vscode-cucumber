@@ -27,6 +27,10 @@
 
 Maintained by the [Cucumber team](https://github.com/cucumber/) and powered by the [Cucumber Language Server](https://github.com/cucumber/language-server#readme).
 
+> **Fork notice:** `Denis-Davidovich/vscode-cucumber` adds compatibility with
+> one-line Behat PHPDoc and with explanatory text after `@Given`, `@When`, or
+> `@Then`. See [INSTALL-FORK.md](INSTALL-FORK.md) for local build and installation.
+
 Available from the [Open VSX Registry](https://open-vsx.org/extension/CucumberOpen/cucumber-official) and
 [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CucumberOpen.cucumber-official).
 

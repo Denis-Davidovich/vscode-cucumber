@@ -1,0 +1,60 @@
+diff --git a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
+index e205c93..18fa0d0 100644
+--- a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
++++ b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
+@@ -22,12 +22,12 @@ exports.phpLanguage = {
+     toParameterTypeName: helpers_js_1.unsupportedOperation,
+     toParameterTypeRegExps: helpers_js_1.unsupportedOperation,
+     toStepDefinitionExpression: function (node) {
+-        // match multiline comment
++        // Match both one-line and multiline PHPDoc comments.
+         var text = node.text;
+-        var match = text.match(/^(\/\*\*[\s*]*)([\s\S]*)(\n[\s]*\*\/)/);
++        var match = text.match(/^\/\*\*([\s\S]*?)\*\/$/);
+         if (!match)
+             throw new Error("Could not match ".concat(text));
+-        return behatifyStep(match[2]);
++        return behatifyStep(match[1]);
+     },
+     // Empty array because Behat does not support Cucumber Expressions
+     defineParameterTypeQueries: [],
+@@ -61,6 +61,9 @@ function behatifyStep(step) {
+ }
+ exports.behatifyStep = behatifyStep;
+ function stripIdentifier(text) {
++    var annotation = text.match(/@(Given|When|Then)\s+([^\r\n]*)/);
++    if (annotation)
++        return annotation[2].trim();
+     return text.replace(/@(Given |When |Then )/, '').trim();
+ }
+ function cleanRegExp(re) {
+diff --git a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
+index 41c1d27..4a76250 100644
+--- a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
++++ b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
+@@ -3,12 +3,12 @@ export const phpLanguage = {
+     toParameterTypeName: unsupportedOperation,
+     toParameterTypeRegExps: unsupportedOperation,
+     toStepDefinitionExpression(node) {
+-        // match multiline comment
++        // Match both one-line and multiline PHPDoc comments.
+         const text = node.text;
+-        const match = text.match(/^(\/\*\*[\s*]*)([\s\S]*)(\n[\s]*\*\/)/);
++        const match = text.match(/^\/\*\*([\s\S]*?)\*\/$/);
+         if (!match)
+             throw new Error(`Could not match ${text}`);
+-        return behatifyStep(match[2]);
++        return behatifyStep(match[1]);
+     },
+     // Empty array because Behat does not support Cucumber Expressions
+     defineParameterTypeQueries: [],
+@@ -54,6 +54,9 @@ export function behatifyStep(step) {
+     return RegExp(stepText);
+ }
+ function stripIdentifier(text) {
++    const annotation = text.match(/@(Given|When|Then)\s+([^\r\n]*)/);
++    if (annotation)
++        return annotation[2].trim();
+     return text.replace(/@(Given |When |Then )/, '').trim();
+ }
+ function cleanRegExp(re) {

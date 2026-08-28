@@ -1,6 +1,7 @@
 dist/
 .idea/
 node_modules/
+.worktrees/
 *.log
 *.iml
 .vscode-test

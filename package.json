@@ -1,9 +1,9 @@
 {
-  "name": "cucumber-official",
-  "displayName": "Cucumber",
-  "description": "Cucumber for Visual Studio Code",
-  "version": "1.11.0",
-  "publisher": "CucumberOpen",
+  "name": "cucumber-behat",
+  "displayName": "Cucumber for Behat",
+  "description": "Cucumber for Visual Studio Code with Behat PHPDoc compatibility fixes",
+  "version": "1.11.1",
+  "publisher": "denis-davidovich",
   "engines": {
     "vscode": "^1.82.0"
   },
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/cucumber/vscode.git"
+    "url": "https://github.com/Denis-Davidovich/vscode-cucumber.git"
   },
   "icon": "images/icon.png",
   "main": "./out/extension.js",
@@ -94,12 +94,14 @@
     "esbuild-extension": "esbuild ./src/extension.ts --external:vscode --bundle --outfile=out/extension.js --format=cjs --platform=node --minify --sourcemap",
     "build": "npm run esbuild-extension",
     "compile": "tsc --build",
+    "postinstall": "patch-package",
     "prepare": "husky && npm run copy-wasms",
     "copy-wasms": "mkdir -p out && cp node_modules/@cucumber/language-service/dist/*.wasm out",
-    "pretest": "npm run compile",
+    "pretest": "npm run compile && npm run test:behat-phpdoc",
     "eslint": "eslint src --ext ts",
     "eslint-fix": "eslint src --ext ts --max-warnings 0 --fix",
     "test": "node ./dist/src/test/runTest.js",
+    "test:behat-phpdoc": "node scripts/test-behat-phpdoc.cjs",
     "prepublishOnly": "npm run update-settings-docs",
     "update-settings-docs": "./scripts/update-settings-docs.sh",
     "vscode-types-compatible": "./scripts/vscode-types-compatible.sh",
@@ -133,6 +135,7 @@
     "husky": "9.1.7",
     "lint-staged": "17.3.0",
     "mocha": "11.8.0",
+    "patch-package": "^8.0.1",
     "prettier": "3.9.6",
     "typescript": "5.9.3"
   }

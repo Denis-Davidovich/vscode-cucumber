@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-08-29
+### Fixed
+- (PHP/Behat) Recognise one-line step PHPDoc such as `/** @Given ... */`.
+- (PHP/Behat) Ignore explanatory PHPDoc text after the step annotation line.
+
 ## [1.11.0] - 2025-05-18
 ### Changed
 - Update dependency @cucumber/language-server to 1.7.0
