@@ -102,6 +102,7 @@
     "eslint-fix": "eslint src --ext ts --max-warnings 0 --fix",
     "test": "node ./dist/src/test/runTest.js",
     "test:behat-phpdoc": "node scripts/test-behat-phpdoc.cjs",
+    "test:behat-corpus": "node scripts/test-behat-corpus.cjs",
     "extension:install": "node scripts/manage-local-extension.cjs install",
     "extension:reinstall": "node scripts/manage-local-extension.cjs reinstall",
     "prepublishOnly": "npm run update-settings-docs",

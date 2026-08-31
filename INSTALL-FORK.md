@@ -3,7 +3,9 @@
 Этот fork исправляет разбор Behat-аннотаций в PHPDoc:
 
 - однострочные определения вида `/** @Given ... */`;
-- многострочные PHPDoc с пояснением после строки `@Given`, `@When` или `@Then`.
+- многострочные PHPDoc с пояснением после строки `@Given`, `@When` или `@Then`;
+- slash-delimited regex с экранированным `\/`;
+- PCRE-группы `(?P<name>...)` и ссылки `(?P=name)`.
 
 Официальное расширение `CucumberOpen.cucumber-official` нельзя оставлять
 активным одновременно с fork: оба запускают Cucumber Language Server для
@@ -20,6 +22,12 @@ make install
 проверку Behat-совместимости, соберёт VSIX, удалит конфликтующее официальное
 расширение и установит fork. После установки выполните в VS Code команду
 `Developer: Reload Window`.
+
+Проверить весь набор PHP glue-файлов конкретного проекта можно отдельно:
+
+```bash
+npm run test:behat-corpus -- /absolute/path/to/tests/Behat
+```
 
 Локальная сборка получает последовательный номер в SemVer build metadata.
 Счётчик хранится в файле `BUILD_NUMBER` и увеличивается при каждом запуске
@@ -69,12 +77,8 @@ code --list-extensions --show-versions \
 
 ```json
 {
-  "cucumber.features": [
-    "core/features/**/*.feature"
-  ],
-  "cucumber.glue": [
-    "core/tests/Behat/**/*.php"
-  ]
+  "cucumber.features": ["core/features/**/*.feature"],
+  "cucumber.glue": ["core/tests/Behat/**/*.php"]
 }
 ```
 

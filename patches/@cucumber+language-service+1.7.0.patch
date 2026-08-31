@@ -1,5 +1,5 @@
 diff --git a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
-index e205c93..5ed81f9 100644
+index e205c93..d2638b5 100644
 --- a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
 @@ -22,12 +22,12 @@ exports.phpLanguage = {
@@ -18,7 +18,7 @@ index e205c93..5ed81f9 100644
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -61,10 +61,15 @@ function behatifyStep(step) {
+@@ -61,11 +61,21 @@ function behatifyStep(step) {
  }
  exports.behatifyStep = behatifyStep;
  function stripIdentifier(text) {
@@ -29,14 +29,21 @@ index e205c93..5ed81f9 100644
  }
  function cleanRegExp(re) {
 -    var _a = __read(re.slice(1).split('/'), 2), body = _a[0], modifier = _a[1];
+-    return RegExp(body, modifier);
 +    var closingDelimiter = re.lastIndexOf('/');
 +    var body = re.slice(1, closingDelimiter);
 +    var modifier = re.slice(closingDelimiter + 1);
-     return RegExp(body, modifier);
++    return RegExp(normalizePcreForJavaScript(body), modifier);
++}
++function normalizePcreForJavaScript(body) {
++    return body
++        .replace(/\(\?P<([A-Za-z_][A-Za-z0-9_]*)>/g, '(?<$1>')
++        .replace(/\(\?P=([A-Za-z_][A-Za-z0-9_]*)\)/g, '\\k<$1>');
  }
  function argToRegex(text) {
+     // arg must be a valid php variable name, see https://www.php.net/manual/en/language.variables.basics.php
 diff --git a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
-index 41c1d27..4498867 100644
+index 41c1d27..15f1dc4 100644
 --- a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
 @@ -3,12 +3,12 @@ export const phpLanguage = {
@@ -55,7 +62,7 @@ index 41c1d27..4498867 100644
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -54,10 +54,15 @@ export function behatifyStep(step) {
+@@ -54,11 +54,21 @@ export function behatifyStep(step) {
      return RegExp(stepText);
  }
  function stripIdentifier(text) {
@@ -66,9 +73,16 @@ index 41c1d27..4498867 100644
  }
  function cleanRegExp(re) {
 -    const [body, modifier] = re.slice(1).split('/');
+-    return RegExp(body, modifier);
 +    const closingDelimiter = re.lastIndexOf('/');
 +    const body = re.slice(1, closingDelimiter);
 +    const modifier = re.slice(closingDelimiter + 1);
-     return RegExp(body, modifier);
++    return RegExp(normalizePcreForJavaScript(body), modifier);
++}
++function normalizePcreForJavaScript(body) {
++    return body
++        .replace(/\(\?P<([A-Za-z_][A-Za-z0-9_]*)>/g, '(?<$1>')
++        .replace(/\(\?P=([A-Za-z_][A-Za-z0-9_]*)\)/g, '\\k<$1>');
  }
  function argToRegex(text) {
+     // arg must be a valid php variable name, see https://www.php.net/manual/en/language.variables.basics.php
