@@ -28,4 +28,24 @@ assert.equal(
   true
 )
 
+const escapedSlashWithUnicodeFlag = parsePhpDoc(`/**
+ * @Then /^на профиле залипания таланта по вакансии (\\S+) видно соотношение «(\\d+) показа? \\/ (\\d+) задерж\\S+»$/u
+ */`)
+assert.equal(escapedSlashWithUnicodeFlag.flags, 'u')
+assert.equal(
+  escapedSlashWithUnicodeFlag.test(
+    'на профиле залипания таланта по вакансии backend видно соотношение «3 показа / 2 задержки»'
+  ),
+  true
+)
+
+const multipleEscapedSlashesWithoutFlags = parsePhpDoc(
+  '/** @When /^путь \\/api\\/v1 содержит [\\/] и конец$/ */'
+)
+assert.equal(multipleEscapedSlashesWithoutFlags.flags, '')
+assert.equal(
+  multipleEscapedSlashesWithoutFlags.test('путь /api/v1 содержит / и конец'),
+  true
+)
+
 console.log('Behat PHPDoc compatibility checks passed')

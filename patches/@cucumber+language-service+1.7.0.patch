@@ -1,5 +1,5 @@
 diff --git a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
-index e205c93..18fa0d0 100644
+index e205c93..5ed81f9 100644
 --- a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
 @@ -22,12 +22,12 @@ exports.phpLanguage = {
@@ -18,7 +18,7 @@ index e205c93..18fa0d0 100644
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -61,6 +61,9 @@ function behatifyStep(step) {
+@@ -61,10 +61,15 @@ function behatifyStep(step) {
  }
  exports.behatifyStep = behatifyStep;
  function stripIdentifier(text) {
@@ -28,8 +28,15 @@ index e205c93..18fa0d0 100644
      return text.replace(/@(Given |When |Then )/, '').trim();
  }
  function cleanRegExp(re) {
+-    var _a = __read(re.slice(1).split('/'), 2), body = _a[0], modifier = _a[1];
++    var closingDelimiter = re.lastIndexOf('/');
++    var body = re.slice(1, closingDelimiter);
++    var modifier = re.slice(closingDelimiter + 1);
+     return RegExp(body, modifier);
+ }
+ function argToRegex(text) {
 diff --git a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
-index 41c1d27..4a76250 100644
+index 41c1d27..4498867 100644
 --- a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
 @@ -3,12 +3,12 @@ export const phpLanguage = {
@@ -48,7 +55,7 @@ index 41c1d27..4a76250 100644
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -54,6 +54,9 @@ export function behatifyStep(step) {
+@@ -54,10 +54,15 @@ export function behatifyStep(step) {
      return RegExp(stepText);
  }
  function stripIdentifier(text) {
@@ -58,3 +65,10 @@ index 41c1d27..4a76250 100644
      return text.replace(/@(Given |When |Then )/, '').trim();
  }
  function cleanRegExp(re) {
+-    const [body, modifier] = re.slice(1).split('/');
++    const closingDelimiter = re.lastIndexOf('/');
++    const body = re.slice(1, closingDelimiter);
++    const modifier = re.slice(closingDelimiter + 1);
+     return RegExp(body, modifier);
+ }
+ function argToRegex(text) {
