@@ -6,5 +6,7 @@ node_modules/
 *.iml
 .vscode-test
 *.vsix
+.build-number.lock
+BUILD_NUMBER.*.tmp
 out/
 .DS_Store

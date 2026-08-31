@@ -13,23 +13,54 @@
 
 ```bash
 cd /Volumes/Data/work/dev.lab/platform/vscode-ext/vscode-cucumber
-npm ci
-npm run test:behat-phpdoc
-npm run build
-npm run package
-
-code --uninstall-extension CucumberOpen.cucumber-official
-code --install-extension ./cucumber-behat-1.11.1.vsix --force
+make install
 ```
 
-После установки выполните в VS Code команду
+Команда сама установит зависимости (если они ещё не установлены), запустит
+проверку Behat-совместимости, соберёт VSIX, удалит конфликтующее официальное
+расширение и установит fork. После установки выполните в VS Code команду
 `Developer: Reload Window`.
+
+Локальная сборка получает последовательный номер в SemVer build metadata.
+Счётчик хранится в файле `BUILD_NUMBER` и увеличивается при каждом запуске
+`npm run package`, `npm run extension:install` или
+`npm run extension:reinstall`. Например:
+
+```text
+1.11.1+1
+```
+
+Следующая сборка получит `1.11.1+2`. Запись `1.11.1.2` не является корректным
+SemVer и не загружается VS Code.
+
+Для чистой переустановки с предварительным удалением старой версии fork:
+
+```bash
+make reinstall
+```
+
+Установка в отдельный профиль VS Code:
+
+```bash
+code . --profile "Cucumber Behat"
+make install ARGS='--profile "Cucumber Behat"'
+```
+
+Первую команду достаточно выполнить один раз: она создаёт профиль, если его
+ещё нет.
+
+Дополнительные параметры:
+
+- `--keep-official` — не удалять `CucumberOpen.cucumber-official`;
+- `--skip-tests` — пропустить тест совместимости;
+- `--dry-run` — проверить окружение и показать план без изменений;
+- `--code code-insiders` — использовать другую команду VS Code CLI.
 
 Проверка установленной версии:
 
 ```bash
 code --list-extensions --show-versions \
-  | rg '^denis-davidovich\.cucumber-behat@1\.11\.1$'
+  | rg '^denis-davidovich\.cucumber-behat@1\.11\.1\+[0-9]+$'
 ```
 
 ## Настройка проекта
@@ -56,11 +87,7 @@ code --list-extensions --show-versions \
 ```bash
 cd /Volumes/Data/work/dev.lab/platform/vscode-ext/vscode-cucumber
 git pull --ff-only
-npm ci
-npm run test:behat-phpdoc
-npm run build
-npm run package
-code --install-extension ./cucumber-behat-1.11.1.vsix --force
+make reinstall
 ```
 
 Затем выполните `Developer: Reload Window`.

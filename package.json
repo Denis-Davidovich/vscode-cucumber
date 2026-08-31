@@ -102,10 +102,12 @@
     "eslint-fix": "eslint src --ext ts --max-warnings 0 --fix",
     "test": "node ./dist/src/test/runTest.js",
     "test:behat-phpdoc": "node scripts/test-behat-phpdoc.cjs",
+    "extension:install": "node scripts/manage-local-extension.cjs install",
+    "extension:reinstall": "node scripts/manage-local-extension.cjs reinstall",
     "prepublishOnly": "npm run update-settings-docs",
     "update-settings-docs": "./scripts/update-settings-docs.sh",
     "vscode-types-compatible": "./scripts/vscode-types-compatible.sh",
-    "package": "vsce package",
+    "package": "node scripts/package-local-extension.cjs",
     "publish": "vsce publish"
   },
   "lint-staged": {
