@@ -85,6 +85,11 @@
           "type": "array",
           "required": false,
           "default": []
+        },
+        "cucumber.plannerBaseUrl": {
+          "markdownDescription": "Base URL used to make `@verifies` references with a full goal UUID clickable. Set it to an empty string to disable Planner links.",
+          "type": "string",
+          "default": "https://planner.monopoly-gold.com/app"
         }
       }
     }
@@ -103,6 +108,7 @@
     "test": "node ./dist/src/test/runTest.js",
     "test:behat-phpdoc": "node scripts/test-behat-phpdoc.cjs",
     "test:behat-corpus": "node scripts/test-behat-corpus.cjs",
+    "test:planner-links": "npm run compile --silent && node scripts/test-planner-links.cjs",
     "extension:install": "node scripts/manage-local-extension.cjs install",
     "extension:reinstall": "node scripts/manage-local-extension.cjs reinstall",
     "prepublishOnly": "npm run update-settings-docs",

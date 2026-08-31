@@ -2,12 +2,19 @@ import { startEmbeddedServer } from '@cucumber/language-server/wasm'
 import vscode from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 
+import { PlannerDocumentLinkProvider } from './PlannerDocumentLinkProvider'
 import { VscodeFiles } from './VscodeFiles'
 
 let client: LanguageClient
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.languages.registerDocumentLinkProvider(
+      { scheme: 'file', language: 'cucumber' },
+      new PlannerDocumentLinkProvider()
+    )
+  )
+
   const serverOptions: ServerOptions = async () =>
     startEmbeddedServer(
       __dirname,

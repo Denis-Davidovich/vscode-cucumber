@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - A corpus smoke test that compiles every Behat annotation in one or more PHP
   glue directories.
+- Clickable Planner links for `@verifies` references containing a full goal UUID.
 
 ## [1.11.1] - 2026-08-29
 
