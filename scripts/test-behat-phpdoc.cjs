@@ -8,6 +8,12 @@ const languageServiceRoot = path.resolve(
 const { phpLanguage } = require(
   path.join(languageServiceRoot, 'dist/cjs/src/language/phpLanguage.js')
 )
+const { ExpressionBuilder } = require(
+  path.join(languageServiceRoot, 'dist/cjs/src/language/ExpressionBuilder.js')
+)
+const { WasmParserAdapter } = require(
+  path.join(languageServiceRoot, 'dist/cjs/src/tree-sitter-wasm/WasmParserAdapter.js')
+)
 
 function parsePhpDoc(text) {
   return phpLanguage.toStepDefinitionExpression({ text })
@@ -58,4 +64,56 @@ const pcreNamedBackreference = parsePhpDoc(
 )
 assert.equal(pcreNamedBackreference.test('слово повторяется как слово'), true)
 
-console.log('Behat PHPDoc compatibility checks passed')
+async function extractStepDefinitions(content) {
+  const parserAdapter = new WasmParserAdapter(path.join(languageServiceRoot, 'dist'))
+  await parserAdapter.init()
+  return new ExpressionBuilder(parserAdapter).build(
+    [{ languageName: 'php', uri: 'file:///Steps.php', content }],
+    []
+  )
+}
+
+async function checkStepDefinitionExtraction() {
+  const result = await extractStepDefinitions(`<?php
+trait Steps
+{
+  // ---------------------------------------------------------------------------
+  // Шаги
+  // ---------------------------------------------------------------------------
+
+  /**
+   * @Given /^пользователь с доступом к API$/
+   */
+  public function userWithApiAccess() {}
+
+  /**
+   * @Given /^реселлер подключил номер "([^"]+)"$/
+   * @Given /^реселлер заново подключил номер "([^"]+)"$/
+   * @When /^реселлер подключает номер "([^"]+)"$/
+   */
+  public function resellerConnectsNumber(string $number) {}
+
+  // Обычный комментарий с упоминанием @Given не является определением шага.
+  public function helper() {}
+}
+`)
+  assert.deepEqual(result.errors, [])
+  const sources = result.expressionLinks.map(({ expression }) => expression.source).sort()
+  assert.deepEqual(sources, [
+    '^пользователь с доступом к API$',
+    '^реселлер заново подключил номер "([^"]+)"$',
+    '^реселлер подключает номер "([^"]+)"$',
+    '^реселлер подключил номер "([^"]+)"$',
+  ])
+  const matches = (text) => result.expressionLinks.some(({ expression }) => expression.match(text))
+  assert.equal(matches('пользователь с доступом к API'), true)
+  assert.equal(matches('реселлер заново подключил номер "79001234567"'), true)
+}
+
+checkStepDefinitionExtraction().then(
+  () => console.log('Behat PHPDoc compatibility checks passed'),
+  (error) => {
+    console.error(error)
+    process.exit(1)
+  }
+)

@@ -10,6 +10,12 @@ const languageServiceRoot = path.resolve(
 const { phpLanguage } = require(
   path.join(languageServiceRoot, 'dist/cjs/src/language/phpLanguage.js')
 )
+const { ExpressionBuilder } = require(
+  path.join(languageServiceRoot, 'dist/cjs/src/language/ExpressionBuilder.js')
+)
+const { WasmParserAdapter } = require(
+  path.join(languageServiceRoot, 'dist/cjs/src/tree-sitter-wasm/WasmParserAdapter.js')
+)
 
 const roots = process.argv.slice(2).map((root) => path.resolve(root))
 if (roots.length === 0) {
@@ -55,3 +61,28 @@ if (failures.length > 0) {
 }
 
 console.log(`Compiled ${annotations} Behat annotations from ${files.length} PHP glue files.`)
+
+// The language server finds step definitions through tree-sitter queries, not line by line:
+// every annotation must also survive that extraction.
+async function checkExtraction() {
+  const parserAdapter = new WasmParserAdapter(path.join(languageServiceRoot, 'dist'))
+  await parserAdapter.init()
+  const sources = files.map((file) => ({
+    languageName: 'php',
+    uri: `file://${file}`,
+    content: fs.readFileSync(file, 'utf8'),
+  }))
+  const result = new ExpressionBuilder(parserAdapter).build(sources, [])
+  const extracted = result.expressionLinks.length
+  if (result.errors.length > 0 || extracted !== annotations) {
+    result.errors.forEach((error) => console.error(error.message))
+    console.error(`Extracted ${extracted} of ${annotations} Behat annotations as step definitions.`)
+    process.exit(1)
+  }
+  console.log(`Extracted ${extracted} of ${annotations} Behat annotations as step definitions.`)
+}
+
+checkExtraction().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
