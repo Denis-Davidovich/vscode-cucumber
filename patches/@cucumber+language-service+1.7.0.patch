@@ -1,8 +1,29 @@
+diff --git a/node_modules/@cucumber/language-service/dist/cjs/src/language/SourceAnalyzer.js b/node_modules/@cucumber/language-service/dist/cjs/src/language/SourceAnalyzer.js
+index 3c6a946..4426412 100644
+--- a/node_modules/@cucumber/language-service/dist/cjs/src/language/SourceAnalyzer.js
++++ b/node_modules/@cucumber/language-service/dist/cjs/src/language/SourceAnalyzer.js
+@@ -124,9 +124,13 @@ var SourceAnalyzer = /** @class */ (function () {
+                         var rootNode = (0, helpers_js_1.syntaxNode)(match, 'root');
+                         if (expressionNode && rootNode) {
+                             var language = (0, languages_js_1.getLanguage)(source.languageName);
+-                            var stepDefinitionExpression = language.toStepDefinitionExpression(expressionNode);
+-                            if (stepDefinitionExpression !== exports.NO_EXPRESSION) {
+-                                callback(stepDefinitionExpression, rootNode, expressionNode, source);
++                            var stepDefinitionExpressions = language.toStepDefinitionExpressions
++                                ? language.toStepDefinitionExpressions(expressionNode)
++                                : [language.toStepDefinitionExpression(expressionNode)];
++                            for (var i = 0; i < stepDefinitionExpressions.length; i++) {
++                                if (stepDefinitionExpressions[i] !== exports.NO_EXPRESSION) {
++                                    callback(stepDefinitionExpressions[i], rootNode, expressionNode, source);
++                                }
+                             }
+                         }
+                     }
 diff --git a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
-index e205c93..d2638b5 100644
+index e205c93..0458ed6 100644
 --- a/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/cjs/src/language/phpLanguage.js
-@@ -22,12 +22,12 @@ exports.phpLanguage = {
+@@ -22,17 +22,25 @@ exports.phpLanguage = {
      toParameterTypeName: helpers_js_1.unsupportedOperation,
      toParameterTypeRegExps: helpers_js_1.unsupportedOperation,
      toStepDefinitionExpression: function (node) {
@@ -15,12 +36,36 @@ index e205c93..d2638b5 100644
              throw new Error("Could not match ".concat(text));
 -        return behatifyStep(match[2]);
 +        return behatifyStep(match[1]);
++    },
++    // Behat allows several step annotations in one PHPDoc; each is a separate step definition.
++    // Non-PHPDoc comments (`//`, `#`, `/* */`) that mention an annotation are not step definitions.
++    toStepDefinitionExpressions: function (node) {
++        var match = node.text.match(/^\/\*\*([\s\S]*?)\*\/$/);
++        if (!match)
++            return [];
++        return stepAnnotations(match[1]).map(behatifyStep);
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -61,11 +61,21 @@ function behatifyStep(step) {
+     defineStepDefinitionQueries: [
+-        "\n(\n  (comment)+ @expression\n  (#match? @expression \"@(Given|When|Then)\")\n) @root\n",
++        "\n(\n  (comment) @expression\n  (#match? @expression \"@(Given|When|Then)\")\n) @root\n",
+     ],
+     snippetParameters: {
+         int: { type: 'int', name: 'i' },
+@@ -60,12 +68,31 @@ function behatifyStep(step) {
+     return RegExp(stepText);
  }
  exports.behatifyStep = behatifyStep;
++function stepAnnotations(docBody) {
++    var annotations = [];
++    var pattern = /@(Given|When|Then)\s+([^\r\n]*)/g;
++    var annotation;
++    while ((annotation = pattern.exec(docBody)) !== null) {
++        annotations.push(annotation[0].replace(/\s*\*\/\s*$/, ''));
++    }
++    return annotations;
++}
  function stripIdentifier(text) {
 +    var annotation = text.match(/@(Given|When|Then)\s+([^\r\n]*)/);
 +    if (annotation)
@@ -42,11 +87,32 @@ index e205c93..d2638b5 100644
  }
  function argToRegex(text) {
      // arg must be a valid php variable name, see https://www.php.net/manual/en/language.variables.basics.php
+diff --git a/node_modules/@cucumber/language-service/dist/esm/src/language/SourceAnalyzer.js b/node_modules/@cucumber/language-service/dist/esm/src/language/SourceAnalyzer.js
+index 63f3bd2..34add7f 100644
+--- a/node_modules/@cucumber/language-service/dist/esm/src/language/SourceAnalyzer.js
++++ b/node_modules/@cucumber/language-service/dist/esm/src/language/SourceAnalyzer.js
+@@ -49,9 +49,13 @@ export class SourceAnalyzer {
+                 const rootNode = syntaxNode(match, 'root');
+                 if (expressionNode && rootNode) {
+                     const language = getLanguage(source.languageName);
+-                    const stepDefinitionExpression = language.toStepDefinitionExpression(expressionNode);
+-                    if (stepDefinitionExpression !== NO_EXPRESSION) {
+-                        callback(stepDefinitionExpression, rootNode, expressionNode, source);
++                    const stepDefinitionExpressions = language.toStepDefinitionExpressions
++                        ? language.toStepDefinitionExpressions(expressionNode)
++                        : [language.toStepDefinitionExpression(expressionNode)];
++                    for (const stepDefinitionExpression of stepDefinitionExpressions) {
++                        if (stepDefinitionExpression !== NO_EXPRESSION) {
++                            callback(stepDefinitionExpression, rootNode, expressionNode, source);
++                        }
+                     }
+                 }
+             }
 diff --git a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
-index 41c1d27..15f1dc4 100644
+index 41c1d27..4ca5e70 100644
 --- a/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
 +++ b/node_modules/@cucumber/language-service/dist/esm/src/language/phpLanguage.js
-@@ -3,12 +3,12 @@ export const phpLanguage = {
+@@ -3,19 +3,27 @@ export const phpLanguage = {
      toParameterTypeName: unsupportedOperation,
      toParameterTypeRegExps: unsupportedOperation,
      toStepDefinitionExpression(node) {
@@ -59,12 +125,36 @@ index 41c1d27..15f1dc4 100644
              throw new Error(`Could not match ${text}`);
 -        return behatifyStep(match[2]);
 +        return behatifyStep(match[1]);
++    },
++    // Behat allows several step annotations in one PHPDoc; each is a separate step definition.
++    // Non-PHPDoc comments (`//`, `#`, `/* */`) that mention an annotation are not step definitions.
++    toStepDefinitionExpressions(node) {
++        const match = node.text.match(/^\/\*\*([\s\S]*?)\*\/$/);
++        if (!match)
++            return [];
++        return stepAnnotations(match[1]).map(behatifyStep);
      },
      // Empty array because Behat does not support Cucumber Expressions
      defineParameterTypeQueries: [],
-@@ -54,11 +54,21 @@ export function behatifyStep(step) {
+     defineStepDefinitionQueries: [
+         `
+ (
+-  (comment)+ @expression
++  (comment) @expression
+   (#match? @expression "@(Given|When|Then)")
+ ) @root
+ `,
+@@ -53,12 +61,29 @@ export function behatifyStep(step) {
+     }
      return RegExp(stepText);
  }
++function stepAnnotations(docBody) {
++    const annotations = [];
++    for (const annotation of docBody.matchAll(/@(Given|When|Then)\s+([^\r\n]*)/g)) {
++        annotations.push(annotation[0].replace(/\s*\*\/\s*$/, ''));
++    }
++    return annotations;
++}
  function stripIdentifier(text) {
 +    const annotation = text.match(/@(Given|When|Then)\s+([^\r\n]*)/);
 +    if (annotation)

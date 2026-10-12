@@ -12,11 +12,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - (PHP/Behat) Parse escaped `/` delimiters in slash-delimited step regular expressions.
 - (PHP/Behat) Translate PCRE named groups `(?P<name>...)` and backreferences
   `(?P=name)` to their JavaScript equivalents before indexing step definitions.
+- (PHP/Behat) Find a step definition whose PHPDoc follows `//` comments, such as
+  a section separator.
+- (PHP/Behat) Index every `@Given`/`@When`/`@Then` annotation of one PHPDoc as a
+  separate step definition.
+- (PHP/Behat) Stop failing the whole index on a non-PHPDoc comment that mentions
+  a step annotation.
 
 ### Added
 
 - A corpus smoke test that compiles every Behat annotation in one or more PHP
-  glue directories.
+  glue directories and checks that the language server extracts each of them.
 - Clickable Planner links for `@verifies` references containing a full goal UUID.
 
 ## [1.11.1] - 2026-08-29
