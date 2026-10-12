@@ -73,10 +73,15 @@ async function extractStepDefinitions(content) {
   )
 }
 
-async function checkStepDefinitionExtraction() {
-  const result = await extractStepDefinitions(`<?php
-trait Steps
-{
+async function stepSources(content) {
+  const result = await extractStepDefinitions(`<?php\ntrait Steps\n{\n${content}\n}\n`)
+  assert.deepEqual(result.errors, [])
+  return result.expressionLinks.map(({ expression }) => expression.source).sort()
+}
+
+const extractionCases = {
+  'PHPDoc after // separator comments is found': async () => {
+    const sources = await stepSources(`
   // ---------------------------------------------------------------------------
   // Шаги
   // ---------------------------------------------------------------------------
@@ -84,36 +89,53 @@ trait Steps
   /**
    * @Given /^пользователь с доступом к API$/
    */
-  public function userWithApiAccess() {}
+  public function userWithApiAccess() {}`)
+    assert.deepEqual(sources, ['^пользователь с доступом к API$'])
+  },
 
+  'every annotation of one PHPDoc is a separate step': async () => {
+    const sources = await stepSources(`
   /**
    * @Given /^реселлер подключил номер "([^"]+)"$/
    * @Given /^реселлер заново подключил номер "([^"]+)"$/
    * @When /^реселлер подключает номер "([^"]+)"$/
    */
-  public function resellerConnectsNumber(string $number) {}
+  public function resellerConnectsNumber(string $number) {}`)
+    assert.deepEqual(sources, [
+      '^реселлер заново подключил номер "([^"]+)"$',
+      '^реселлер подключает номер "([^"]+)"$',
+      '^реселлер подключил номер "([^"]+)"$',
+    ])
+  },
 
+  '// comment mentioning @Given is not a step and does not break the index': async () => {
+    const sources = await stepSources(`
   // Обычный комментарий с упоминанием @Given не является определением шага.
   public function helper() {}
-}
-`)
-  assert.deepEqual(result.errors, [])
-  const sources = result.expressionLinks.map(({ expression }) => expression.source).sort()
-  assert.deepEqual(sources, [
-    '^пользователь с доступом к API$',
-    '^реселлер заново подключил номер "([^"]+)"$',
-    '^реселлер подключает номер "([^"]+)"$',
-    '^реселлер подключил номер "([^"]+)"$',
-  ])
-  const matches = (text) => result.expressionLinks.some(({ expression }) => expression.match(text))
-  assert.equal(matches('пользователь с доступом к API'), true)
-  assert.equal(matches('реселлер заново подключил номер "79001234567"'), true)
+
+  /**
+   * @Given /^пользователь с доступом к API$/
+   */
+  public function userWithApiAccess() {}`)
+    assert.deepEqual(sources, ['^пользователь с доступом к API$'])
+  },
 }
 
-checkStepDefinitionExtraction().then(
-  () => console.log('Behat PHPDoc compatibility checks passed'),
-  (error) => {
-    console.error(error)
+async function checkStepDefinitionExtraction() {
+  let failed = 0
+  for (const [name, check] of Object.entries(extractionCases)) {
+    try {
+      await check()
+      console.log(`ok - ${name}`)
+    } catch (error) {
+      failed++
+      console.error(`not ok - ${name}\n${error.message}`)
+    }
+  }
+  if (failed > 0) {
     process.exit(1)
   }
-)
+  console.log('Behat PHPDoc compatibility checks passed')
+}
+
+checkStepDefinitionExtraction()
